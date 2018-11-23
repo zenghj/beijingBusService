@@ -163,14 +163,25 @@ function fetchBusTime(lineId, dirId, stopSeq) {
         } catch (err) {}
         if (json.html) {
           let $ = cheerio.load(json.html);
-          result.routeName = $('#lh').text();
-          result.routeInfo = $('#lm').text();
-          result.desc1 = $('.inquiry_header article p')
+          let desc1 = $('.inquiry_header article p')
             .first()
             .text();
-          result.desc2 = $('.inquiry_header article p')
+          let desc2 = $('.inquiry_header article p')
             .eq(1)
             .text();
+
+          // result.originResponse = json.html; // test
+          result.routeName = $('#lh').text();
+          result.routeInfo = $('#lm').text();
+          result.desc1 = desc1;
+          result.desc2 = desc2;
+
+          let desc1Splits = desc1.split(' ');
+          // result.busRunTime = (desc1.match(/\d{1,2}:\d{1,2}-\d{1,2}:\d{1,2}/) || [])[0]
+          result.busRunTime = desc1Splits[1];
+          result.curStopName = desc1Splits[0];
+          result.curStopSeq = stopSeq;
+          result.busCompanyName = desc1Splits[3];
           // result.lastestBus = {
           //   stopCount: result.desc2.match(/(\d+)\s*站/)[1],
           //   distance_meter: result.desc2.match(/(\d+)\s*米/)[1],
@@ -180,6 +191,7 @@ function fetchBusTime(lineId, dirId, stopSeq) {
           result.busesOnTheWay = [];
 
           let $lis = $('#cc_stop ul li');
+          let stopSeqToName = {};
           $lis.each(function(li, i) {
             let $this = $(this);
             let $div = $this.children('div').first();
@@ -188,6 +200,10 @@ function fetchBusTime(lineId, dirId, stopSeq) {
             let className = $i.attr('class');
             let isMiddle = id.includes('m'); // <div id="3m"><i></i></div> 表示在站站之间有车
             let stopSeq = isMiddle ? getMiddleSeq(id) : id;
+            let stopName = $this.find('span').attr('title');
+            if (stopName) {
+              stopSeqToName[id] = stopName;
+            }
 
             if (className === BUS_STATUS.arriving) {
               // 到站车辆
@@ -198,6 +214,7 @@ function fetchBusTime(lineId, dirId, stopSeq) {
               result.busesOnTheWay.push(stopSeq);
             }
           });
+          result.stopSeqToName = stopSeqToName;
 
           resolve(result);
         } else {
@@ -212,5 +229,5 @@ module.exports = {
   fetchLineDir,
   fetchDirStation,
   fetchBusTime,
-  fetchBusLineList,
+  fetchBusLineList
 };

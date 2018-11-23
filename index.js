@@ -1,11 +1,13 @@
 const Koa = require('koa');
+var cors = require('koa-cors');
 const app = new Koa();
 
 const contextMixins = require('./contextMixins');
 const router = require('./router')
-const PORT = 7777
+const PORT = 7001
 Object.assign(app.context, contextMixins);
 
+app.use(cors());
 app.use(router.routes())
 
 app.listen(7777, err => {
