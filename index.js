@@ -10,7 +10,7 @@ Object.assign(app.context, contextMixins);
 app.use(cors());
 app.use(router.routes())
 
-app.listen(7777, err => {
+app.listen(PORT, err => {
   if(err) {
     console.error(err);
   } else {
